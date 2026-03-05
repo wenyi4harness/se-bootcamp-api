@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Office Supply Store</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f4f6f9;
+      color: #333;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a56db;
+      color: #fff;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    header h1 { font-size: 1.5rem; font-weight: 700; }
+    header span { font-size: 1.6rem; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.25rem 2rem;
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .filter-label { font-weight: 600; font-size: 0.875rem; color: #555; }
+
+    .category-pills { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+    .pill {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      border: 1.5px solid #c7d2fe;
+      background: #fff;
+      color: #4338ca;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    .pill:hover, .pill.active {
+      background: #4338ca;
+      color: #fff;
+      border-color: #4338ca;
+    }
+
+    .btn-add {
+      margin-left: auto;
+      padding: 0.5rem 1.1rem;
+      background: #16a34a;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-add:hover { background: #15803d; }
+
+    main { padding: 1.5rem 2rem; }
+
+    #status-bar {
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+    }
+
+    /* Product grid */
+    #product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: box-shadow 0.15s;
+    }
+    .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    .card-name { font-size: 1rem; font-weight: 700; line-height: 1.3; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .badge-Writing      { background: #dbeafe; color: #1d4ed8; }
+    .badge-Paper        { background: #fef9c3; color: #854d0e; }
+    .badge-Fastening    { background: #fce7f3; color: #9d174d; }
+    .badge-Cutting      { background: #fef3c7; color: #92400e; }
+    .badge-Adhesives    { background: #d1fae5; color: #065f46; }
+    .badge-Organization { background: #ede9fe; color: #5b21b6; }
+    .badge-default      { background: #e5e7eb; color: #374151; }
+
+    .card-price {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #1a56db;
+    }
+
+    .card-stock {
+      font-size: 0.82rem;
+      color: #6b7280;
+    }
+    .card-stock.low { color: #dc2626; font-weight: 600; }
+
+    .card-id { font-size: 0.75rem; color: #9ca3af; }
+
+    .card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .btn-edit, .btn-delete {
+      flex: 1;
+      padding: 0.4rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-edit   { background: #e0f2fe; color: #0369a1; }
+    .btn-edit:hover   { background: #bae6fd; }
+    .btn-delete { background: #fee2e2; color: #b91c1c; }
+    .btn-delete:hover { background: #fecaca; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    }
+    .modal h2 { font-size: 1.2rem; margin-bottom: 1.25rem; }
+
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+    .form-group label { font-size: 0.82rem; font-weight: 600; color: #374151; }
+    .form-group input, .form-group select {
+      padding: 0.55rem 0.75rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: #4338ca; }
+
+    .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
+    .btn-save {
+      flex: 1;
+      padding: 0.6rem;
+      background: #1a56db;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .btn-save:hover { background: #1e40af; }
+    .btn-cancel {
+      flex: 1;
+      padding: 0.6rem;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .btn-cancel:hover { background: #e5e7eb; }
+
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: #1f2937;
+      color: #fff;
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.25s, transform 0.25s;
+      z-index: 200;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    #error-banner {
+      background: #fef2f2;
+      border: 1.5px solid #fca5a5;
+      color: #991b1b;
+      padding: 0.9rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>&#128203;</span>
+  <h1>Office Supply Store</h1>
+</header>
+
+<div class="toolbar">
+  <span class="filter-label">Filter:</span>
+  <div class="category-pills">
+    <button class="pill active" data-category="All">All</button>
+    <button class="pill" data-category="Writing">Writing</button>
+    <button class="pill" data-category="Paper">Paper</button>
+    <button class="pill" data-category="Fastening">Fastening</button>
+    <button class="pill" data-category="Cutting">Cutting</button>
+    <button class="pill" data-category="Adhesives">Adhesives</button>
+    <button class="pill" data-category="Organization">Organization</button>
+  </div>
+  <button class="btn-add" id="btn-add">+ Add Product</button>
+</div>
+
+<main>
+  <div id="error-banner"></div>
+  <p id="status-bar">Loading products...</p>
+  <div id="product-grid"></div>
+</main>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">Add Product</h2>
+    <input type="hidden" id="form-id" />
+    <div class="form-group">
+      <label for="form-name">Name</label>
+      <input type="text" id="form-name" placeholder="Product name" />
+    </div>
+    <div class="form-group">
+      <label for="form-category">Category</label>
+      <select id="form-category">
+        <option value="Writing">Writing</option>
+        <option value="Paper">Paper</option>
+        <option value="Fastening">Fastening</option>
+        <option value="Cutting">Cutting</option>
+        <option value="Adhesives">Adhesives</option>
+        <option value="Organization">Organization</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="form-price">Price ($)</label>
+      <input type="number" id="form-price" min="0" step="0.01" placeholder="0.00" />
+    </div>
+    <div class="form-group">
+      <label for="form-stock">Stock</label>
+      <input type="number" id="form-stock" min="0" step="1" placeholder="0" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btn-cancel">Cancel</button>
+      <button class="btn-save" id="btn-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const API = 'http://localhost:8080/api/products';
+  let allProducts = [];
+  let activeCategory = 'All';
+
+  /* ---- Fetch all products ---- */
+  async function loadProducts() {
+    try {
+      const res = await fetch(API);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      allProducts = await res.json();
+      hideError();
+      renderGrid();
+    } catch (e) {
+      showError('Could not reach the API. Make sure the Spring Boot server is running on port 8080. (' + e.message + ')');
+      document.getElementById('status-bar').textContent = '';
+    }
+  }
+
+  /* ---- Render ---- */
+  function renderGrid() {
+    const filtered = activeCategory === 'All'
+      ? allProducts
+      : allProducts.filter(p => p.category === activeCategory);
+
+    const statusBar = document.getElementById('status-bar');
+    statusBar.textContent = `Showing ${filtered.length} product${filtered.length !== 1 ? 's' : ''}${activeCategory !== 'All' ? ' in ' + activeCategory : ''}`;
+
+    const grid = document.getElementById('product-grid');
+    grid.innerHTML = '';
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<p style="color:#9ca3af;font-size:0.9rem;">No products found.</p>';
+      return;
+    }
+
+    filtered.forEach(p => {
+      const badgeClass = `badge-${p.category}` in {'badge-Writing':1,'badge-Paper':1,'badge-Fastening':1,'badge-Cutting':1,'badge-Adhesives':1,'badge-Organization':1}
+        ? `badge-${p.category}` : 'badge-default';
+      const stockClass = p.stock < 50 ? 'card-stock low' : 'card-stock';
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-header">
+          <span class="card-name">${escHtml(p.name)}</span>
+          <span class="badge ${badgeClass}">${escHtml(p.category)}</span>
+        </div>
+        <div class="card-price">$${p.price.toFixed(2)}</div>
+        <div class="${stockClass}">Stock: ${p.stock} units${p.stock < 50 ? ' — Low' : ''}</div>
+        <div class="card-id">ID #${p.id}</div>
+        <div class="card-actions">
+          <button class="btn-edit" data-id="${p.id}">Edit</button>
+          <button class="btn-delete" data-id="${p.id}">Delete</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    grid.querySelectorAll('.btn-edit').forEach(btn =>
+      btn.addEventListener('click', () => openEditModal(+btn.dataset.id))
+    );
+    grid.querySelectorAll('.btn-delete').forEach(btn =>
+      btn.addEventListener('click', () => deleteProduct(+btn.dataset.id))
+    );
+  }
+
+  /* ---- Category filter ---- */
+  document.querySelectorAll('.pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeCategory = pill.dataset.category;
+      renderGrid();
+    });
+  });
+
+  /* ---- Modal ---- */
+  const overlay = document.getElementById('modal-overlay');
+
+  function openAddModal() {
+    document.getElementById('modal-title').textContent = 'Add Product';
+    document.getElementById('form-id').value = '';
+    document.getElementById('form-name').value = '';
+    document.getElementById('form-category').value = 'Writing';
+    document.getElementById('form-price').value = '';
+    document.getElementById('form-stock').value = '';
+    overlay.classList.add('open');
+  }
+
+  function openEditModal(id) {
+    const p = allProducts.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('modal-title').textContent = 'Edit Product';
+    document.getElementById('form-id').value = p.id;
+    document.getElementById('form-name').value = p.name;
+    document.getElementById('form-category').value = p.category;
+    document.getElementById('form-price').value = p.price;
+    document.getElementById('form-stock').value = p.stock;
+    overlay.classList.add('open');
+  }
+
+  function closeModal() { overlay.classList.remove('open'); }
+
+  document.getElementById('btn-add').addEventListener('click', openAddModal);
+  document.getElementById('btn-cancel').addEventListener('click', closeModal);
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+
+  /* ---- Save (add / update) ---- */
+  document.getElementById('btn-save').addEventListener('click', async () => {
+    const id = document.getElementById('form-id').value;
+    const body = {
+      name:     document.getElementById('form-name').value.trim(),
+      category: document.getElementById('form-category').value,
+      price:    parseFloat(document.getElementById('form-price').value),
+      stock:    parseInt(document.getElementById('form-stock').value, 10),
+    };
+
+    if (!body.name || isNaN(body.price) || isNaN(body.stock)) {
+      showToast('Please fill in all fields correctly.');
+      return;
+    }
+
+    try {
+      let res;
+      if (id) {
+        res = await fetch(`${API}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: +id, ...body }),
+        });
+        showToast('Product updated.');
+      } else {
+        const nextId = allProducts.length ? Math.max(...allProducts.map(p => p.id)) + 1 : 1;
+        res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: nextId, ...body }),
+        });
+        showToast('Product added.');
+      }
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      closeModal();
+      await loadProducts();
+    } catch (e) {
+      showToast('Error saving product: ' + e.message);
+    }
+  });
+
+  /* ---- Delete ---- */
+  async function deleteProduct(id) {
+    const product = allProducts.find(p => p.id === id);
+    if (!confirm(`Delete "${product?.name}"?`)) return;
+    try {
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showToast('Product deleted.');
+      await loadProducts();
+    } catch (e) {
+      showToast('Error deleting product: ' + e.message);
+    }
+  }
+
+  /* ---- Helpers ---- */
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  function showError(msg) {
+    const b = document.getElementById('error-banner');
+    b.textContent = msg;
+    b.style.display = 'block';
+  }
+  function hideError() {
+    document.getElementById('error-banner').style.display = 'none';
+  }
+
+  /* ---- Init ---- */
+  loadProducts();
+</script>
+</body>
+</html>
